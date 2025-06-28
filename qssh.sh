@@ -129,7 +129,7 @@ edit_config() {
     echo -e "${C_BOLD_BLUE}│ 编辑 SSH 配置           │${C_RESET}"
     echo -e "${C_BOLD_BLUE}└──────────────────────────┘${C_RESET}"
     echo -e "${C_BOLD_MAGENTA}可用配置:${C_RESET}"
-    load_config | awk -F: '{print "\033[1;33m" NR ". " $1 "@" $2 ":" $3 " (" $4 ") [" ($6 ? $6 : "无") "]\033[0m"}'
+    load_config | awk -F: '{print "\033[1;33m" NR ". [" ($6 ? $6 : "无") "] " $1 "@" $2 ":" $3 " (" $ garn 4 ")\033[0m"}'
     echo -e "${C_BOLD_CYAN}选择要编辑的配置编号 (输入 0 取消):${C_RESET}"
     read -p "" selection
     if [[ "$selection" == "0" ]]; then
@@ -147,7 +147,7 @@ edit_config() {
     fi
     config_line=$(load_config | sed -n "${selection}p")
     IFS=':' read -r old_username old_hostname old_port old_auth_type old_auth_value old_remarks <<< "$config_line"
-    echo -e "${C_BOLD_YELLOW}当前配置: $old_username@$old_hostname:$old_port ($old_auth_type) [$old_remarks]${C_RESET}"
+    echo -e "${C_BOLD_YELLOW}当前配置: [$old_remarks] $old_username@$old_hostname:$old_port ($old_auth_type)${C_RESET}"
     echo -e "${C_BOLD_CYAN}请输入新用户名 (当前: $old_username, 按 Enter 保留):${C_RESET}"
     read -p "" username
     username=${username:-$old_username}
@@ -200,7 +200,7 @@ edit_config() {
     sed -i "${selection}s/.*/$username:$hostname:$port:$auth_type:$auth_value:$remarks/" "$temp_file"
     mv "$temp_file" "$CONFIG_FILE"
     chmod 600 "$CONFIG_FILE"
-    echo -e "${C_BOLD_GREEN}已更新 $username@$hostname ($remarks) 的配置${C_RESET}"
+    echo -e "${C_BOLD_GREEN}已更新 [$remarks] $username@$hostname 的配置${C_RESET}"
 }
 
 delete_ssh_config() {
@@ -212,7 +212,7 @@ delete_ssh_config() {
     echo -e "${C_BOLD_BLUE}│ 删除 SSH 配置           │${C_RESET}"
     echo -e "${C_BOLD_BLUE}└──────────────────────────┘${C_RESET}"
     echo -e "${C_BOLD_MAGENTA}可用配置:${C_RESET}"
-    load_config | awk -F: '{print "\033[1;33m" NR ". " $1 "@" $2 ":" $3 " (" $4 ") [" ($6 ? $6 : "无") "]\033[0m"}'
+    load_config | awk -F: '{print "\033[1;33m" NR ". [" ($6 ? $6 : "无") "] " $1 "@" $2 ":" $3 " (" $4 ")\033[0m"}'
     echo -e "${C_BOLD_CYAN}选择要删除的配置编号 (输入 0 取消):${C_RESET}"
     read -p "" selection
     if [[ "$selection" == "0" ]]; then
@@ -241,7 +241,7 @@ ssh_connect() {
     local auth_value="$5"
     local remarks="$6"
 
-    echo -e "${C_BOLD_BLUE}正在连接到 $username@$hostname:$port ($remarks)...${C_RESET}"
+    echo -e "${C_BOLD_BLUE}正在连接到 [$remarks] $username@$hostname:$port...${C_RESET}"
     if [[ "$auth_type" == "password" ]]; then
         check_dependencies
         sshpass -p "$auth_value" ssh -o StrictHostKeyChecking=no -p "$port" "$username@$hostname"
@@ -249,7 +249,7 @@ ssh_connect() {
         ssh -o StrictHostKeyChecking=no -p "$port" -i "$auth_value" "$username@$hostname"
     fi
     if [[ $? -eq 0 ]]; then
-        echo -e "${C_BOLD_GREEN}成功连接到 $username@$hostname ($remarks)${C_RESET}"
+        echo -e "${C_BOLD_GREEN}成功连接到 [$remarks] $username@$hostname${C_RESET}"
     else
         echo -e "${C_BOLD_RED}连接失败${C_RESET}"
     fi
@@ -263,7 +263,7 @@ list_configs() {
     echo -e "${C_BOLD_BLUE}┌──────────────────────────┐${C_RESET}"
     echo -e "${C_BOLD_BLUE}│ 已保存的配置           │${C_RESET}"
     echo -e "${C_BOLD_BLUE}└──────────────────────────┘${C_RESET}"
-    load_config | awk -F: '{print "\033[1;33m地址: " $1 "@" $2 ", 端口: " $3 ", 认证类型: " $4 ", 备注: " ($6 ? $6 : "无") "\033[0m"}'
+    load_config | awk -F: '{print "\033[1;33m备注: " ($6 ? $6 : "无") ", 地址: " $1 "@" $2 ", 端口: " $3 ", 认证类型: " $4 "\033[0m"}'
 }
 
 main() {
@@ -296,7 +296,7 @@ main() {
                 echo -e "${C_BOLD_BLUE}│ 选择要连接的配置       │${C_RESET}"
                 echo -e "${C_BOLD_BLUE}└──────────────────────────┘${C_RESET}"
                 echo -e "${C_BOLD_MAGENTA}可用配置:${C_RESET}"
-                load_config | awk -F: '{print "\033[1;33m" NR ". " $1 "@" $2 ":" $3 " (" $4 ") [" ($6 ? $6 : "无") "]\033[0m"}'
+                load_config | awk -F: '{print "\033[1;33m" NR ". [" ($6 ? $6 : "无") "] " $1 "@" $2 ":" $3 " (" $4 ")\033[0m"}'
                 echo -e "${C_BOLD_CYAN}选择要连接的配置编号:${C_RESET}"
                 read -p "" selection
                 config_line=$(load_config | sed -n "${selection}p")
